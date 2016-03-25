@@ -1,0 +1,443 @@
+
+SimpleDateMath.pm, ©2016, Jim Melanson, jmelanson1965@gmail.com, https://github.com/TorontoJim
+
+Permission is granted to copy, distribute and/or modify this
+document under the terms of the GNU Free Documentation License,
+Version 1.3 or any later version published by the Free Software
+Foundation; with no Invariant Sections, no Front-Cover Texts and
+no Back-Cover Texts.  A copy of the license is included in the
+section entitled "GNU Free Documentation License".
+
+
+The information in this document is mirrored in the POD documetnation.
+This document is provided for you to review without having to view then
+POD documentation.
+
+
+NAME
+
+SimpleDateMath - Manipulating string dates with math functions.
+
+
+
+VERSION
+
+Version 0.01
+
+
+
+SYNOPSIS
+
+    Use SimpleDateMath;
+    my $object = SimpleDateMath->new();
+
+    
+    #Let's you set date output to the US format (MM/dd/yyyy). The default is International format (yyyy-mm-dd).
+    #With or without an argument, it returns the current date format.
+    $object->date_format("US");
+
+    
+    #Returns the difference between two dates as an integer. Can enter the dates as strings or as y,m,d.
+    #If you put the higher date first, the method will correct it.
+    my $int_diffindays = $object->difference_in_days("2016/02/15", "11/5/2016");
+    
+    
+    #**NOTE: Anywhere you see a string date entered, you can also enter it as y,m,d.
+
+    
+    #Add specified days, weeks, months, or years to the passed date.
+    my $newdate = $object->add('days', 90, "2016/02/15");
+    my $newdate = $object->add('weeks', 5, "2016/02/15");
+    my $newdate = $object->add('months', 18, "2016/02/15");
+    my $newdate = $object->add('years', 7, "2016/02/15");
+    
+    
+    #Subtract specified days, weeks, months, or years from the passed date.
+    my $newdate = $object->subtract('days', 90, "2016/02/15");
+    my $newdate = $object->subtract('weeks', 5, "2016/02/15");
+    my $newdate = $object->subtract('months', 18, "2016/02/15");
+    my $newdate = $object->subtract('years', 7, "2016/02/15");
+
+    
+    #Returns true if the date argument has Daylight Savings Time in effect. You can check one of three regions (but it's easy to add others.)
+    #Currently supports "North America", "Mexico", "Europe"
+    if($object->is_dst("North America", "2016/03/15")) {
+        ... do nifty things ...
+    }
+
+        
+    #This method takes a date and returns the day of the week as an integer, starting with Monday = 0 (Sunday = 6);
+    my $int_day_of_week = $object->day_of_week_by_date("2016/02/15");
+    
+        #Combine it with add or subtract to get that value for a day you don't know the exact date of, but know how far away it is:
+        my $int_day_of_week = $object->day_of_week_by_date($object->add('year', 1, "2016/02/15"));
+    
+    
+    #This method takes a day of the week as an integer and returns the name of the day. Starts with Monday = 0 ... Sunday = 6.
+    my $day_name = $object->weekday(5);
+    
+        #Combine it with the one above to get the weekday name of a date:
+        my $day_name = $object->weekday_name($object->day_of_week_by_date("206/02/15"));
+    
+        #Combine it with add() or subtract() to get the name of a weekday in the future of the past by a numbe or days rather than the date
+        my $day_name = $object->weekday_name($object->day_of_week_by_date($object->add('year', 1, "2016/02/15")));
+        
+        
+    #This method will return the day of the month that a particular iteration of a weekday falls on. Accepts and integer (Monday = 0) for the
+    #weekday or you can spell out the weekday name:
+    #  For example: The 3rd Friday of July,2016.
+       my $day_of_month = $object->nth_weekday_of_the_month('Friday', 3, 2016, 07);
+    
+        #Another example: The first Saturday of December, 2019
+        my $day_of_month = $object->nth_weekday_of_the_month(5, 1, 2019, 12);
+        
+        #Another example: The last Sunday of February, 2016
+        mY $day_of_month = $object->nth_weekday_of_the_month(6, 6, 2016, 2);
+
+        
+    #Returns 1 if it's a leap year, else it returns 0.
+    if($object->is_leap_year(2016)) {
+        ... Nifty Code ...
+    }
+
+    
+    #Returns y, m, d from a date string.
+    my ($y, $m, $d) = $object->parse_date("2016/2/15");
+    my ($y, $m, $d) = $object->parse_date("2/15/2016");
+    
+    
+    #This method looks at date strings and date elements, returning the lowest date as ymd, and then the highest date as ymd.
+    #You could use this if you had to determine which date string was older. Same as the one above, really, but this takes TWO dates.
+    #Why to similiar methods? This one is used by several of the methods, sometimes getting strings and sometimes getting YMD. This
+    #method figures out what it's looking at and does the right thing.
+    my ($low_year, $low_month, $low_day, $hi_year, $hi_month, $hi_day) = $object->extract_date_parts("2017/08/10", "2016/02/15");
+    
+
+    #Returns a number telling you the number of days in a month. Automatically checks for leap years.
+    my $int_daysinmonth = $object->days_in_month(2016, 7);
+ 
+ 
+    #Returns the name in a string
+    my $monthname = $object->month_name(3);
+    
+    
+    #Reverse of the one above.
+    my $month_number = $object->month_integer_from_name("March");
+    
+   
+
+
+INSTALLATION:
+
+You can install this in the normal manner. Download the tar ball and do what you usually do.
+
+You can also just drop the file SimpleDateMath.pm in a directory on your server. If you do this,
+you will need to add the following to the top of your script so that it can find the module:
+
+
+BEGIN{
+    push(@INC, '/home2/acctname/public_html/pathdo/directory/withmodules');
+}
+
+After that, you can just call:
+
+use SimpleDateMath;
+
+
+   
+
+CAVEATS
+
+Two caveats:
+ 1.) The oldest date this module will return is January 1st, 46 B.C.
+ 2.) It will not calculate the weekday name for dates in the Julian Calendar (prior to Oct 15th, 1852).
+ 
+
+Calculates leap years correctly.
+
+
+
+
+METHODS
+
+new()
+=====
+
+Initializes the object. It does not accept any arguments.
+
+Use SimpleDateMath;
+my $object = SimpleDateMath->new();
+
+
+
+date_format()
+=============
+
+This is an accessor. You can either set the date format or retrieve it. The two formats available are "US" and "International".
+
+The default format is "International" which is ISO 8601 compliant.
+
+US Format is:  MM/dd/yyyy
+
+International format is: yyyy/MM/dd
+
+use SimpleDateMath;
+my $obj = SimpleDateMath->new();
+
+Set the format to US:
+$obj->date_format("US");
+
+Read the date format:
+my $format = $obj->date_format;
+
+
+
+
+parse_date([string date])
+===============================
+
+This method will parse out the year, month, and day from a date string. The year value MUST be four digits.
+The month and day can be either one or two digits:
+
+
+my $start_date = "2016/04/15";
+use SimpleDateMath;
+my $obj = SimpleDateMath->new();
+my ($y, $m, $d) = $obj->parse_date($start_date);
+
+
+The formats are all parsable entries:
+
+International Format:
+2016/03/08
+2016/3/08
+2016/03/8
+2016/3/8
+
+US Format:
+3/8/2016
+3/08/2016
+03/8/2016
+03/08/2016
+
+NOTE: This module uses the Julian Date, including the Julian proleptic calendar, for dates prior to and including October 4th, 1582.
+This module does not calculate the Julian Days calendar used by astronomers. All dates including October 15th, 1582 amd beyond use
+the Gregorian calendar. The dates from October 5th, 1582 to October 14th, 1582 do not exist. Blame Pope Gregory for that.
+
+
+There is another method related to the above, called extract_date_parts() and it accepts TWO date strings (or YMD format). It will
+return them to you with the oldest date first. This is great if you need to differentiate easily between two dates, as to which
+is in the past and which is in the future (relative to each other).
+
+my ($low_year, $low_month, $low_day, $hi_year, $hi_month, $hi_day) = $object->extract_date_parts("2017/08/10", "2016/02/15");
+
+#enter component parts in the order Y, M, D, Y2, M2, D2
+my ($low_year, $low_month, $low_day, $hi_year, $hi_month, $hi_day) = $object->extract_date_parts(2017, 8, 10, 2016, 2, 15);
+
+
+
+
+difference_in_days()
+====================
+
+This method will return the number of days between two dates (as strings or as YMD):
+
+my $start_date = "2016/03/15";
+my $compare_date = "2016/03/20":
+use SimpleDateMath;
+my $obj = SimpleDateMath->new();
+print "The compare date is ", $obj->difference_in_days($start_date, $compare_date), " days after the start date.\n";
+
+or
+
+print "The compare date is ", $obj->difference_in_days(2016, 3, 15, 2016, 3, 20), " days after the start date.\n";
+
+Note: For this method to do it's calculation, the compare_date must come after the start_date. However, if you mix them up,
+the method will sort that out on it's own. It's very forgiving, like my mom.
+
+
+
+
+add()
+subtract()
+==========
+
+These methods either add or subtract a number of days/weeks/months/years to or from the start date. The start date is passed
+to the method as either a string or as its YMD.
+
+This method needs three pieces of information:
+
+1.) The period: Days, Weeks, Months, Years or you can enter D, W, M, Y (It's not case sensitive, I just type with capitals a lot).
+
+Both methods return the new date after applying the subraction or addition
+
+my $start_date = "2016/03/15";
+my $days_to_add = 5;
+use SimpleDateMath;
+my $obj = SimpleDateMath->new();
+print "The new date is: ", $obj->add('days', $days_to_add, $start_date), "\n";
+
+Another way to write this would be:
+
+my $y = 2016;
+my $m = 3;
+my $d = 5;
+my $years_to_add = 9;
+use SimpleDateMath;
+my $obj = SimpleDateMath->new();
+print "The new date is: ", $obj->add_days('y', $years_to_add, $y, $m, $d), "\n";
+
+NOTE: The oldest date these methods will return is January 1st, 46 B.C., even if your parameters point to a date older than that.
+
+
+NOTE: The leap day is included in the calculations back to October 14th, 1582. Prior to that, there was no such thing as a leap year.
+
+Here is a full set of examples:
+
+#Add specified days, weeks, months, or years to the passed date.
+my $newdate = $object->add('days', 90, "2016/02/15");
+my $newdate = $object->add('weeks', 5, "2016/02/15");
+my $newdate = $object->add('months', 18, "2016/02/15");
+my $newdate = $object->add('years', 7, "2016/02/15");
+    
+#Subtract specified days, weeks, months, or years from the passed date.
+my $newdate = $object->subtract('days', 90, "2016/02/15");
+my $newdate = $object->subtract('weeks', 5, "2016/02/15");
+my $newdate = $object->subtract('months', 18, "2016/02/15");
+my $newdate = $object->subtract('years', 7, "2016/02/15");
+
+    
+    
+    
+is_dst() 
+========
+
+This method accepts a location/region, and a date (or YMD). It will return '1' if DST is in effect for that date, '0' if it's not.
+
+The currently accepted locations are:  North America, Mexico, Europe
+Adding more are easy, though, once you have the rules.
+
+my $check_date = "2016/03/15";
+use SimpleDateMath;
+my $obj = SimpleDateMath->new();
+if($object->is_dst("North America", $check_date)) {
+    ... do nifty things ...
+}
+
+
+
+
+day_of_week_by_date()
+=====================
+
+This method returns the weekday as an integer for any date. (Monday = 0 ... Sunday = 6)
+
+my $int_day_of_week = $object->day_of_week_by_date("2016/02/15");
+    
+Combine it with add or subtract to get that value for a day you don't know the exact date of, but know how far away it is:
+my $int_day_of_week = $object->day_of_week_by_date($object->add('days', 90, "2016/02/15"));
+
+
+
+
+weekday()
+=========
+
+This method takes an integer for a zero based list (Monday = 0 ... Sunday = 6) and returns the name of the weekday.
+
+my $day_name = $object->weekday(5);
+    
+Combine it with day_of_week_by_date() to get the weekday name of a date:
+my $day_name = $object->weekday_name($object->day_of_week_by_date("206/02/15"));
+    
+Combine it with add() or subtract() AND day_of_week_by_date() to get the name of a weekday in the future of the past by a number or days, rather than the date.
+my $day_name = $object->weekday_name($object->day_of_week_by_date($object->add('days', 90, "2016/02/15")));
+
+
+
+
+nth_weekday_of_the_month()
+==========================
+
+This method will return the day of the month for an iteration of a weekday.
+
+It requires four arguments:
+
+1.) The weekday as an integer from a zero based list (Monday = 0 ... Sunday = 6). You can also enter the day as a word, i.e.: "Friday"
+2.) The iteration (1st, 2nd, 3rd, etc.)
+3.) The year
+4.) The month
+
+$object->nth_weekday_of_the_month(day_of_the_week, iteration, year, month);
+
+Here are three examples:
+
+The 3rd Friday of July,2016:
+my $day_of_month = $object->nth_weekday_of_the_month('Friday', 3, 2016, 07);
+    
+The first Saturday of December, 2019:
+my $day_of_month = $object->nth_weekday_of_the_month(5, 1, 2019, 12);
+        
+The last Sunday of February, 2016 (Remember, Sunday = 6)
+my $day_of_month = $object->nth_weekday_of_the_month(6, 6, 2016, 2);
+
+
+NOTE: To get the LAST iteration of any weekday, enter the iteration value as "6". Even if there are not that many, it will return the last one.
+
+
+
+
+month_integer_from_name()
+=========================
+
+Returns an integer for a 1 based list from the name of a month (January = 1 ... December = 12)
+
+my $month_number = $object->month_integer_from_name("March");
+
+
+
+
+month_name()
+============
+
+Opposite of the above, this returns the month name from a 1 based list (January = 1 ... December = 12)
+
+my $month_name = $object->month_name(3);
+
+
+
+
+days_in_month()
+===============
+
+Returns the number of days in a month. Will return February correctly for leap years.
+
+my $days_in_month = $object->days_in_month($year, $month);
+
+
+
+
+is_leap_year([integer])
+=======================
+
+This method calculates whether or not a year is a leap year. It's not difficult but it's also not as simple as
+dividing by 4. Note that the earliest year you can test for is 1584. Leap years did not exist in the Julian Calendar.
+
+my $obj = SimpleDateMath->new();
+if($obj->is_leap_year(2016)) {
+   ...Nifty Code...
+}
+
+
+
+
+Other Methods
+=============
+
+The module has a few other methods, but the are for internal processes and not meant to be accessed directly.
+
+
+ 
+ 
+ 
+ 
